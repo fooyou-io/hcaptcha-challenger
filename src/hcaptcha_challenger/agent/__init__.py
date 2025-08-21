@@ -4,5 +4,6 @@
 # GitHub     : https://github.com/QIN2DIM
 # Description:
 from .challenger import AgentV, AgentConfig
+from .nested_challenger import NestedAgentV, NestedAgentConfig
 
-__all__ = ['AgentV', 'AgentConfig']
+__all__ = ['AgentV', 'AgentConfig', 'NestedAgentV', 'NestedAgentConfig']
