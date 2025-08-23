@@ -3,6 +3,7 @@
 # Author     : QIN2DIM
 # GitHub     : https://github.com/QIN2DIM
 # Description:
+from functools import wraps
 import asyncio
 import json
 import math
@@ -681,6 +682,54 @@ class NestedRoboticArm:
                 submit_btn = frame_challenge.locator("//div[@class='button-submit button']")
                 await self.click_by_mouse(submit_btn)
 
+    async def click_checkbox_nested(self):
+        """主函数: 查找并点击 hCaptcha checkbox"""
+        checkbox_element = await self.search_element_in_frames(
+            iframe_selector=self.checkbox_selector,
+            element_selector="//div[@id='checkbox']",
+            max_depth=self.config.MAX_IFRAME_SEARCH_DEPTH,
+        )
+        await self.click_by_mouse(checkbox_element)
+
+    async def search_element_in_frames(self, 
+                                       iframe_selector: str,
+                                       element_selector: str,
+                                       max_depth: int = 4):
+        """
+        递归搜索 hCaptcha 元素
+        Args:
+            iframe_selector: iframe 选择器
+            element_selector: 元素选择器
+            max_depth: 最大深度
+        """
+        async def _recursive_search(frame, depth=0):
+            if depth >= max_depth:
+                return None
+
+            # 检查当前框架
+            if not frame.is_detached():
+                target_frame_locator = frame.frame_locator(iframe_selector)
+                target_element = target_frame_locator.locator(element_selector)
+
+                is_visible = await target_element.is_visible()
+                if is_visible:
+                    return target_element
+            # 递归搜索子框架
+            child_frames = frame.child_frames
+            for child_frame in child_frames:
+                if child_frame.url != '' and not child_frame.is_detached():
+                    result = await _recursive_search(child_frame, depth=depth + 1)
+                    if result:
+                        return result
+
+        # 直接使用 self.page
+        all_frames = self.page.frames
+        for frame in all_frames:
+            result = await _recursive_search(frame, depth=0)
+            if result:
+                return result
+
+        return None
 
 class NestedAgentV:
 
