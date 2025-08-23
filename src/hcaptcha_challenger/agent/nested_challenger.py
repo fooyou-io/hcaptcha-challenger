@@ -317,6 +317,9 @@ class NestedRoboticArm:
 
         self._checkbox_selector = "//iframe[starts-with(@src,'https://newassets.hcaptcha.com/captcha/v1/') and contains(@src, 'frame=checkbox')]"
         self._challenge_selector = "//iframe[starts-with(@src,'https://newassets.hcaptcha.com/captcha/v1/') and contains(@src, 'frame=challenge')]"
+        
+        self.target_checkbox_frame: Frame | None = None
+        self.target_challenge_frame: Frame | None = None
 
     @property
     def checkbox_selector(self) -> str:
@@ -702,7 +705,7 @@ class NestedRoboticArm:
             element_selector: 元素选择器
             max_depth: 最大深度
         """
-        async def _recursive_search(frame, depth=0):
+        async def _recursive_search(frame: Frame, depth=0):
             if depth >= max_depth:
                 return None
 
@@ -713,6 +716,9 @@ class NestedRoboticArm:
 
                 is_visible = await target_element.is_visible()
                 if is_visible:
+                    _target_frames = frame.child_frames
+                    self.target_checkbox_frame = _target_frames[0]
+                    self.target_challenge_frame = _target_frames[1]
                     return target_element
             # 递归搜索子框架
             child_frames = frame.child_frames
